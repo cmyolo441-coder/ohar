@@ -1,0 +1,87 @@
+# OHAR configuration example. Copy to ~/.ohar/config.toml or run
+# `python3 main.py --setup`. Prefer api_key_env or $OHAR_HOME/.env; if you use
+# a literal api_key, keep this file mode 0600 and never commit it.
+
+schema_version = 1
+default_lane = "main"
+approval = "ask"              # ask | auto | read-only
+# workspace = "~/code/project"
+max_turns = 24
+max_output_tokens = 4096
+context_window = 64000
+subagents_max = 8             # hard maximum: 8
+subagent_timeout = 180
+shell_timeout = 120
+# temperature = 0.7
+
+[ui]
+theme = "aurora"              # aurora | ember | moss | mono
+banner = true
+glyphs = "unicode"            # unicode | ascii
+markdown = true
+syntax = true                 # highlight fenced code blocks
+
+[web]
+enabled = true
+require_approval = false      # true = ask before every fetch/search
+allow_private = false         # allow localhost/LAN URLs for local dev docs
+timeout = 30
+max_bytes = 2000000
+max_chars = 12000
+search_backend = "duckduckgo" # duckduckgo | searxng
+# searx_url = "http://localhost:8888"
+user_agent = "OHAR/0.2"
+
+[browser]
+enabled = true
+require_approval = false      # true = ask before browser actions
+allow_private = false
+headless = true
+timeout = 30
+# chromium_path = "/usr/bin/chromium"
+
+[memory]
+enabled = true
+max_records = 500
+require_approval = true       # ask before saving or deleting notes
+
+[providers.openai]
+type = "openai"
+base_url = "https://api.openai.com/v1"
+api_key_env = "OPENAI_API_KEY"
+# api_key = "sk-..."          # literal key is supported; keep this file chmod 600
+timeout = 120
+
+[providers.ollama]
+type = "openai"
+base_url = "http://localhost:11434/v1"
+timeout = 300
+
+[lanes.main]
+strategy = "failover"         # failover | round_robin | weighted | least_busy
+members = ["openai/gpt-4.1-mini", "ollama/qwen3:8b"]
+weights = [2, 1]              # optional; only affects the weighted strategy
+cooldown_seconds = 60
+max_inflight = 8
+
+[lanes.subagents]
+strategy = "least_busy"
+members = ["openai/gpt-4.1-mini", "ollama/qwen3:8b"]
+cooldown_seconds = 30
+max_inflight = 8
+
+# Optional MCP servers (stdio transport). Disabled examples:
+# [[mcp.servers]]
+# name = "playwright"
+# command = "npx"
+# args = ["@playwright/mcp@latest", "--headless"]
+# enabled = false
+# timeout = 30
+#
+# [[mcp.servers]]
+# name = "filesystem"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/projects"]
+# enabled = false
+# timeout = 20
+# env = { LOG_LEVEL = "warn" }
